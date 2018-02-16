@@ -114,12 +114,6 @@ bridge.on('open', () => {
 
  Press ${chalk.red('<Ctrl-C>')} to quit.`)
 })
-bridge.on('/', _ => {
-    console.log('message: ', _)
-})
-bridge.on('/hi/world', (message) => {
-    console.log("hi world: ", message.args)
-})
 bridge.on('error', console.error )
 bridge.on('close', () => {
     console.info("Bye bye ...")
