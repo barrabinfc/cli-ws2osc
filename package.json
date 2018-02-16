@@ -1,0 +1,21 @@
+{
+  "name": "portinari-osc2browsers",
+  "version": "0.1.0",
+  "description": "A minimal tool for linking browsers and OSC protocol. Creates a websocket bridge and forward OSC messages.",
+  "main": "bridge.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "osc",
+    "bridge"
+  ],
+  "author": "barrabin.fc@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^2.3.1",
+    "ip": "^1.1.5",
+    "meow": "^4.0.0",
+    "osc-js": "^1.2.2"
+  }
+}

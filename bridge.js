@@ -1,0 +1,128 @@
+#!/usr/bin/env node
+'use strict';
+
+const pkg = require('./package.json')
+const os = require('os')
+
+const meow = require('meow') 
+const chalk = require('chalk')
+const osc = require('osc-js')
+const ip = require('ip')
+
+const oscbridge = require('./src/oscbridge')
+
+let cli_usage = `
+Usage:
+$ osc2browsers 
+
+Options:
+--wsAddr, -a       Interface with port, generally localhost or 0.0.0.0:8080
+--udpServer, -d    Server:Port to send OSC Messages. Can be multicast
+
+--friendness       Say hi when connected.
+
+--mdns, -m         Use .local(LAN) address? Overides wsAddr
+
+Examples:
+$ osc2browsers -d localhost:8080
+............................
+. Connecting to OSC Server:8080 ... OK !🌈
+. The WS Address is:
+. 
+. === http://machine.local:9090 ==
+.
+. Thats it! Just let it in the background.
+.
+. Press <Ctrl-C> to quit.
+`
+let cli_flags = {
+        'friendness': { type: 'boolean', default: false },
+        'mdns': {
+            type: 'boolean',
+            alias: 'm',
+            default: true
+        },
+		'wsAddr': {
+			type: 'string',
+            alias: 'a',
+            default: 'localhost:8080',
+        },
+        'udpServer': {
+            type: 'string',
+            alias: 'd',
+            default: 'localhost:41235',
+        },
+}
+
+const defaultOptions = {
+    udpServer: {
+      host: 'localhost',
+      port: 41234,
+      exclusive: false
+    },
+    udpClient: {
+        host: 'localhost',    // @param {string} Hostname of udp client for messaging
+        port: 41235           // @param {number} Port of udp client for messaging
+    },
+    wsServer: {
+        host: 'localhost',    // @param {string} Hostname of WebSocket server
+        port: 8080            // @param {number} Port of WebSocket server
+    }
+}
+
+
+function parse_options(cli){
+    let [ws_host, ws_port] = cli.flags.wsAddr.split(':')
+    let [udp_host, udp_port] = cli.flags.udpServer.split(':')
+
+    defaultOptions.wsServer.host = ws_host
+    defaultOptions.wsServer.port = ws_port
+    defaultOptions.udpClient.host = udp_host
+    defaultOptions.udpClient.port = udp_port
+    
+    return defaultOptions
+}
+
+/**
+ * The bridge between Websocket and UDP, using osc-js.
+ * Use it as a dropin tool for Max/Msp/SuperCollider & other apps. 
+ * 
+ * This will bind a websocket,
+ *          and forward every message to the 'udpServer'. 
+ * And back and forth. Every message by udpServer is received by ws and forwarded.
+ *             
+ */
+
+
+
+let cli = meow(cli_usage, {flags: cli_flags, autoHelp: true, version: pkg.version})
+let options = parse_options(cli)
+
+let localIP = ip.address()
+let localName = ( os.hostname() + '.local' )
+let listenAddr   = ( cli.flags.mdns ? localName : localIP )
+
+console.log(' Creating bridge .... \n')
+let bridge = oscbridge.createBridge( options )
+bridge.on('open', () => {
+    let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
+    let ws_p = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
+    
+    console.log(`🌈       ${osc_p} <-> ${ws_p}
+
+ Thats it! Just let it in the background.
+
+ Press ${chalk.red('<Ctrl-C>')} to quit.`)
+    
+    if(cli.flags.friendness){
+        var message = new OSC.Message('/hi/world', Math.random());
+        bridge.send(message)
+    }
+})
+bridge.on('/', _ => {
+    console.log('message: ', _)
+})
+bridge.on('/hi/world', _ => {
+    console.log("New client: ", _)
+})
+bridge.on('error', console.error )
