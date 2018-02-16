@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+    Hello
+    <button id="send">Send Message</button>
+    
+    <script type="text/javascript" src="../node_modules/osc-js/lib/osc.browser.min.js"></script>
+    <script type="text/javascript">
+      var osc = new OSC();
+      osc.open(); // connect by default to ws://localhost:8080
+    
+      osc.on('/hi/world', function(m){
+          console.log("Functiona ate no browserssss",m)
+      })
+      document.getElementById('send').addEventListener('click', function() {
+        var message = new OSC.Message('/hi/world', Math.random());
+        osc.send(message);
+      });
+    </script>
+
+</body>
+</html>
+

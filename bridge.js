@@ -47,22 +47,22 @@ let cli_flags = {
             alias: 'a',
             default: 'localhost:8080',
         },
-        'udpServer': {
+        'udpClient': {
             type: 'string',
             alias: 'd',
-            default: 'localhost:41235',
+            default: 'localhost:41234',
         },
 }
 
 const defaultOptions = {
     udpServer: {
       host: 'localhost',
-      port: 41234,
+      port: 41235,
       exclusive: false
     },
     udpClient: {
         host: 'localhost',    // @param {string} Hostname of udp client for messaging
-        port: 41235           // @param {number} Port of udp client for messaging
+        port: 41234           // @param {number} Port of udp client for messaging
     },
     wsServer: {
         host: 'localhost',    // @param {string} Hostname of WebSocket server
@@ -73,7 +73,7 @@ const defaultOptions = {
 
 function parse_options(cli){
     let [ws_host, ws_port] = cli.flags.wsAddr.split(':')
-    let [udp_host, udp_port] = cli.flags.udpServer.split(':')
+    let [udp_host, udp_port] = cli.flags.udpClient.split(':')
 
     defaultOptions.wsServer.host = ws_host
     defaultOptions.wsServer.port = ws_port
@@ -113,16 +113,14 @@ bridge.on('open', () => {
  Thats it! Just let it in the background.
 
  Press ${chalk.red('<Ctrl-C>')} to quit.`)
-    
-    if(cli.flags.friendness){
-        var message = new OSC.Message('/hi/world', Math.random());
-        bridge.send(message)
-    }
 })
 bridge.on('/', _ => {
     console.log('message: ', _)
 })
-bridge.on('/hi/world', _ => {
-    console.log("New client: ", _)
+bridge.on('/hi/world', (message) => {
+    console.log("hi world: ", message.args)
 })
 bridge.on('error', console.error )
+bridge.on('close', () => {
+    console.info("Bye bye ...")
+})

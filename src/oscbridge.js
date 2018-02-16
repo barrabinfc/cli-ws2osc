@@ -1,10 +1,4 @@
 const OSC = require('osc-js')
-
-const options = {
-    udpServer: {
-      port: 9912
-    }
-}
   
 let osc_bridge = undefined
 function  createBridge(options){
