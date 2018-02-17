@@ -19,7 +19,7 @@ Options:
 --wsAddr, -a       Interface with port, generally localhost or 0.0.0.0:8080
 --udpServer, -d    Server:Port to send OSC Messages. Can be multicast
 
---friendness       Say hi when connected.
+--friendness       Say your local area IP
 
 --mdns, -m         Use .local(LAN) address? Overides wsAddr
 
@@ -40,12 +40,12 @@ let cli_flags = {
         'mdns': {
             type: 'boolean',
             alias: 'm',
-            default: true
+            default: false 
         },
 		'wsAddr': {
 			type: 'string',
             alias: 'a',
-            default: 'localhost:8080',
+            default: '0.0.0.0:8080',
         },
         'udpClient': {
             type: 'string',
@@ -65,7 +65,7 @@ const defaultOptions = {
         port: 41234           // @param {number} Port of udp client for messaging
     },
     wsServer: {
-        host: 'localhost',    // @param {string} Hostname of WebSocket server
+        host: '0.0.0.0',      // @param {string} Hostname of WebSocket server
         port: 8080            // @param {number} Port of WebSocket server
     }
 }
