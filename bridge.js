@@ -8,8 +8,10 @@ const meow = require('meow')
 const chalk = require('chalk')
 const osc = require('osc-js')
 const ip = require('ip')
+const fs = require('fs')
 
 const oscbridge = require('./src/oscbridge')
+const f = require( './src/utils/index' )
 
 let cli_usage = `
 Usage:
@@ -102,19 +104,43 @@ let localIP = ip.address()
 let localName = ( os.hostname() + '.local' )
 let listenAddr   = ( cli.flags.mdns ? localName : localIP )
 
-console.log(' Creating bridge .... \n')
-let bridge = oscbridge.createBridge( options )
-bridge.on('open', () => {
-    let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
-    let ws_p = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
-    
-    console.log(`🌈       ${osc_p} <-> ${ws_p}
+let bridge = undefined
 
- Thats it! Just let it in the background.
+/* Guard agains all exceptions */
+process.on('uncaughtException', (err) => {
+    fs.writeSync(1, `Caught exception: ${err}\n`);
+});
 
- Press ${chalk.red('<Ctrl-C>')} to quit.`)
-})
-bridge.on('error', console.error )
-bridge.on('close', () => {
-    console.info("Bye bye ...")
-})
+function retry(tries=3){
+    // Please avoid infinite loop. Or not if tries < 0
+    if(tries==0) return
+
+    f.doit( function() {
+
+        console.log(' Creating bridge .... \n')
+        bridge = oscbridge.createBridge( options )
+        console.dir(bridge)
+
+        bridge.on('open', () => {
+            let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
+            let ws_p = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
+            
+            console.log(`🌈       ${osc_p} <-> ${ws_p}
+
+        Thats it! Just let it in the background.
+
+        Press ${chalk.red('<Ctrl-C>')} to quit.`)
+        })
+        bridge.on('error', console.error )
+        bridge.on('close', () => {
+            console.info("Bye bye (close)...")
+        })
+
+    }).catch( function(e) {
+        bridge = undefined
+        console.error("Error",e)
+        retry(tries-1)
+     })
+}
+
+retry(2)
