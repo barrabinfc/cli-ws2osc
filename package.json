@@ -1,7 +1,7 @@
 {
-  "name": "cli-osc2websocket",
+  "name": "cli-ws2osc",
   "version": "0.1.0",
-  "description": "A minimal tool for linking browsers and OSC protocol. Creates a websocket bridge and forward OSC messages.",
+  "description": "A minimal tool for linking browsers and UDP OSC Clients. Creates a websocket bridge and forward OSC messages.",
   "main": "bridge.js",
   "scripts": {},
   "bin": {
