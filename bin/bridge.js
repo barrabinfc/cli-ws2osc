@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const pkg = require('./package.json')
+const pkg = require('../package.json')
 const os = require('os')
 
 const meow = require('meow') 
@@ -10,8 +10,8 @@ const osc = require('osc-js')
 const ip = require('ip')
 const fs = require('fs')
 
-const oscbridge = require('./src/oscbridge')
-const f = require( './src/utils/index' )
+const oscbridge = require('../src/oscbridge')
+const f = require( '../src/utils/index' )
 
 let cli_usage = `
 Usage:
@@ -109,9 +109,11 @@ let bridge = undefined
 /* Guard agains all exceptions */
 process.on('uncaughtException', (err) => {
     fs.writeSync(1, `Caught exception: ${err}\n`);
+    bridge.close()
+    setTimeout(retry, 1000)
 });
 
-function retry(tries=3){
+function retry(tries=1){
     // Please avoid infinite loop. Or not if tries < 0
     if(tries==0) return
 
@@ -119,7 +121,6 @@ function retry(tries=3){
 
         console.log(' Creating bridge .... \n')
         bridge = oscbridge.createBridge( options )
-        console.dir(bridge)
 
         bridge.on('open', () => {
             let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
