@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A minimal tool for linking browsers and UDP OSC Clients. Creates a websocket bridge and forward OSC messages.",
   "main": "bridge.js",
+  "repository": "https://github.com/barrabinfc/cli-ws2osc.git",
   "scripts": {},
   "bin": {
     "ws2osc": "bin/bridge.js"
