@@ -140,11 +140,13 @@ if(options.httpServer.enabled){
     var app = express();
  
     //... bunch of other express stuff here ...
-    //app.use(express.static( 'src' ))
+    let static_dirname = process.cwd()
+    app.use(express.static( static_dirname ))
     app.get('/', (req, res) => res.send('Hello World!'))
 
     //pass in your express app and credentials to create an https server
-    console.log("Creating https server... OK")
+    console.log(`Creating https server... ${chalk.green(`OK`)}`);
+    console.log(`Serving static files...  ${chalk.cyan(static_dirname)}`)
     var httpsServer = https.createServer(credentials, app);
     httpsServer.listen( options.httpServer.port );
 
