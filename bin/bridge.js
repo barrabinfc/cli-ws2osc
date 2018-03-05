@@ -69,9 +69,22 @@ const defaultOptions = {
     wsServer: {
         host: '0.0.0.0',      // @param {string} Hostname of WebSocket server
         port: 8080            // @param {number} Port of WebSocket server
+    },
+    httpServer: {
+        enabled: true,
+        port: 8080,
+        privateKey:  'sslcert/key.pem',
+        certificate: 'sslcert/cert.pem', 
     }
 }
 
+/**
+ * 
+    var privateKey  = fs.readFileSync('sslcert/key.pem', 'utf8');
+    var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
+ 
+    var credentials = {key: privateKey, cert: certificate};
+ */
 
 function parse_options(cli){
     let [ws_host, ws_port] = cli.flags.wsAddr.split(':')
@@ -92,10 +105,8 @@ function parse_options(cli){
  * This will bind a websocket,
  *          and forward every message to the 'udpServer'. 
  * And back and forth. Every message by udpServer is received by ws and forwarded.
- *             
+ *    
  */
-
-
 
 let cli = meow(cli_usage, {flags: cli_flags, autoHelp: true, version: pkg.version})
 let options = parse_options(cli)
@@ -126,7 +137,7 @@ function retry(tries=1){
             let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
             let ws_p = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
             
-            console.log(`🌈       ${osc_p} <-> ${ws_p}
+            console.log(` 🌈       ${osc_p} <-> ${ws_p}
 
         Thats it! Just let it in the background.
 
