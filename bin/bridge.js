@@ -58,12 +58,14 @@ let cli_flags = {
             default: 'localhost:41234',
         },
         'privateKey': {
-            'type': 'string',
-            'default': 'sslcert/key.pem'
+            type: 'string',
+	    alias: 'k',
+            default: 'sslcert/key.pem'
         },
         'certificate': {
-            'type': 'string',
-            'default': 'sslcert/cert.pem'
+            type: 'string',
+	    alias: 'c',
+            default: 'sslcert/cert.pem'
         }
 }
 
