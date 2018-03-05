@@ -142,7 +142,7 @@ if(options.httpServer.enabled){
     //... bunch of other express stuff here ...
     let static_dirname = process.cwd()
     app.use(express.static( static_dirname ))
-    app.get('/', (req, res) => res.send('Hello World!'))
+    app.get('/', (req, res) => res.send('Hello OSCBridge World!'))
 
     //pass in your express app and credentials to create an https server
     console.log(`Creating https server... ${chalk.green(`OK`)}`);
