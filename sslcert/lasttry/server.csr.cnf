@@ -1,0 +1,14 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+
+[dn]
+C=BR
+ST=Sao Paulo
+L=Sao Paulo
+O=End Point
+OU=Testing Domain
+emailAddress=barrabin.fc@gmail.com
+CN = dellfatima.local
