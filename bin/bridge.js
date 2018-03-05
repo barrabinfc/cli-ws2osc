@@ -9,6 +9,9 @@ const chalk = require('chalk')
 const osc = require('osc-js')
 const ip = require('ip')
 const fs = require('fs')
+const https = require('https')
+
+const express = require('express');
 
 const oscbridge = require('../src/oscbridge')
 const f = require( '../src/utils/index' )
@@ -54,6 +57,14 @@ let cli_flags = {
             alias: 'd',
             default: 'localhost:41234',
         },
+        'privateKey': {
+            'type': 'string',
+            'default': 'sslcert/key.pem'
+        },
+        'certificate': {
+            'type': 'string',
+            'default': 'sslcert/cert.pem'
+        }
 }
 
 const defaultOptions = {
@@ -94,6 +105,9 @@ function parse_options(cli){
     defaultOptions.wsServer.port = ws_port
     defaultOptions.udpClient.host = udp_host
     defaultOptions.udpClient.port = udp_port
+
+    defaultOptions.httpServer.privateKey = cli.flags.privateKey    
+    defaultOptions.httpServer.certificate = cli.flags.certificate
     
     return defaultOptions
 }
@@ -117,12 +131,45 @@ let listenAddr   = ( cli.flags.mdns ? localName : localIP )
 
 let bridge = undefined
 
+/* Start a HTTPS server, if needed */
+if(options.httpServer.enabled){
+    var privateKey  = fs.readFileSync( options.httpServer.privateKey, 'utf8');
+    var certificate = fs.readFileSync( options.httpServer.certificate, 'utf8');
+ 
+    var credentials = {key: privateKey, cert: certificate};
+    var app = express();
+ 
+    //... bunch of other express stuff here ...
+    //app.use(express.static( 'src' ))
+    app.get('/', (req, res) => res.send('Hello World!'))
+
+    //pass in your express app and credentials to create an https server
+    console.log("Creating https server... OK")
+    var httpsServer = https.createServer(credentials, app);
+    httpsServer.listen( options.httpServer.port );
+
+    /** Use the server concurrently with wss */
+    options.wsServer.server = httpsServer
+}
+
 /* Guard agains all exceptions */
 process.on('uncaughtException', (err) => {
     fs.writeSync(1, `Caught exception: ${err}\n`);
+    console.log(err.stack)
     bridge.close()
     setTimeout(retry, 1000)
 });
+
+function printAddresses(){
+    let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
+    let ws_p  = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
+
+    console.log(` 🌈       ${osc_p} <-> ${ws_p}
+
+Thats it! Just let it in the background.
+
+Press ${chalk.red('<Ctrl-C>')} to quit.`)
+}
 
 function retry(tries=1){
     // Please avoid infinite loop. Or not if tries < 0
@@ -130,19 +177,15 @@ function retry(tries=1){
 
     f.doit( function() {
 
-        console.log(' Creating bridge .... \n')
+        console.log('Creating bridge .... \n')
         bridge = oscbridge.createBridge( options )
 
-        bridge.on('open', () => {
-            let osc_p = `${chalk.green(`osc://${options.udpClient.host}:${options.udpClient.port}`)}`
-            let ws_p = `${chalk.green(`http://${listenAddr}:${options.wsServer.port}`)}`
-            
-            console.log(` 🌈       ${osc_p} <-> ${ws_p}
-
-        Thats it! Just let it in the background.
-
-        Press ${chalk.red('<Ctrl-C>')} to quit.`)
-        })
+        if(options.wsServer.server){
+            printAddresses()
+       } else {
+            bridge.on('open', printAddresses)
+       }
+       
         bridge.on('error', console.error )
         bridge.on('close', () => {
             console.info("Bye bye (close)...")
