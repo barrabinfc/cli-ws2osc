@@ -144,8 +144,14 @@ if(options.httpServer.enabled){
  
     //... Express static files and CORS
     let static_dirname = process.cwd()
-    app.use(express.static( static_dirname ))
-    app.use(cors())
+    
+    // Enable cors
+    app.all('/*', function(req, res, next) {
+        res.header('Access-Control-Allow-Origin', '*');
+        next();
+    });
+    
+    app.use(express.static( static_dirname ))    
     app.get('/', (req, res) => res.send('Hello OSCBridge World!'))
 
     //pass in your express app and credentials to create an https server
