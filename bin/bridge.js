@@ -10,6 +10,7 @@ const osc = require('osc-js')
 const ip = require('ip')
 const fs = require('fs')
 const https = require('https')
+const cors = require('cors')
 
 const express = require('express');
 
@@ -141,9 +142,10 @@ if(options.httpServer.enabled){
     var credentials = {key: privateKey, cert: certificate};
     var app = express();
  
-    //... bunch of other express stuff here ...
+    //... Express static files and CORS
     let static_dirname = process.cwd()
     app.use(express.static( static_dirname ))
+    app.use(cors())
     app.get('/', (req, res) => res.send('Hello OSCBridge World!'))
 
     //pass in your express app and credentials to create an https server
